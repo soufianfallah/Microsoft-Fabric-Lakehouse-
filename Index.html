@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft Fabric Lakehouse Explained</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .presentation-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1000px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            padding: 60px;
+            min-height: 600px;
+            animation: fadeIn 0.5s;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+
+        p {
+            color: #555;
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #ffd54f 0%, #ffeb3b 100%);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .architecture-box {
+            background: #f8f9fa;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: white;
+            font-size: 1em;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 1.1em;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .diagram {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .diagram-box {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            margin: 10px;
+            font-weight: bold;
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #764ba2;
+            margin: 0 10px;
+        }
+
+        .emoji {
+            font-size: 2em;
+            margin-right: 10px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 30px 60px;
+            background: #f8f9fa;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .nav-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .slide-indicator {
+            text-align: center;
+            color: #764ba2;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .key-point {
+            background: #e3f2fd;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .layers {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+
+        .layer {
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .layer-box {
+            background: linear-gradient(135deg, #ffd54f 0%, #ffeb3b 100%);
+            padding: 30px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            transition: transform 0.3s;
+        }
+
+        .layer-box:hover {
+            transform: scale(1.1);
+        }
+
+        .bronze { background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%) !important; color: white; }
+        .silver { background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%) !important; }
+        .gold { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important; }
+
+        ul {
+            margin: 20px 0 20px 40px;
+        }
+
+        li {
+            color: #555;
+            font-size: 1.1em;
+            line-height: 2;
+            margin-bottom: 10px;
+        }
+
+        .checkmark {
+            color: #4caf50;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <h1>🏠 Microsoft Fabric Lakehouse</h1>
+            <h2>Explained Simply</h2>
+            <p style="text-align: center; font-size: 1.3em; margin-top: 60px;">
+                Discover the <span class="highlight">best of both worlds</span>: 
+                the flexibility of a Data Lake + the power of a Data Warehouse
+            </p>
+            <div class="architecture-box" style="margin-top: 80px;">
+                <p style="font-size: 1.5em; color: #667eea;">
+                    <strong>Lakehouse = Data Lake + Data Warehouse</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: What is a Lakehouse? -->
+        <div class="slide">
+            <h2>🤔 What is a Lakehouse?</h2>
+            <p>A <span class="highlight">Lakehouse</span> is a modern data architecture that combines:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🌊 Data Lake</h4>
+                    <p>Store ANY type of data (files, images, videos, logs)</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🏢 Data Warehouse</h4>
+                    <p>Query structured data with SQL for business reports</p>
+                </div>
+            </div>
+
+            <div class="key-point">
+                <p><strong>In Plain English:</strong> Imagine a storage building where you can throw in anything (like a warehouse), but it's also organized so you can find things quickly (like a library catalog).</p>
+            </div>
+
+            <p style="margin-top: 40px; text-align: center; font-size: 1.3em;">
+                You get <span class="highlight">flexibility</span> + <span class="highlight">speed</span> + <span class="highlight">simplicity</span>
+            </p>
+        </div>
+
+        <!-- Slide 3: The Problem It Solves -->
+        <div class="slide">
+            <h2>❌ The Problem (Before Lakehouse)</h2>
+            
+            <h3>Old Way: Separate Systems</h3>
+            <table class="comparison-table">
+                <tr>
+                    <th>Data Lake 🌊</th>
+                    <th>Data Warehouse 🏢</th>
+                </tr>
+                <tr>
+                    <td>✅ Stores all data types</td>
+                    <td>✅ Fast SQL queries</td>
+                </tr>
+                <tr>
+                    <td>✅ Cheap storage</td>
+                    <td>✅ Great for reports</td>
+                </tr>
+                <tr>
+                    <td>❌ Slow queries</td>
+                    <td>❌ Only structured data</td>
+                </tr>
+                <tr>
+                    <td>❌ Complex setup</td>
+                    <td>❌ Expensive storage</td>
+                </tr>
+            </table>
+
+            <div class="key-point" style="margin-top: 40px;">
+                <p><strong>The Pain:</strong> Companies had to manage TWO separate systems, copy data between them, and deal with data becoming out of sync!</p>
+            </div>
+        </div>
+
+        <!-- Slide 4: The Solution -->
+        <div class="slide">
+            <h2>✅ The Lakehouse Solution</h2>
+            
+            <p style="font-size: 1.3em; text-align: center; margin-bottom: 40px;">
+                <span class="highlight">One place</span> for everything!
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📁 Store Anything</h4>
+                    <p>CSV, JSON, images, videos, PDFs - all in one place</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ Query Fast</h4>
+                    <p>SQL queries run quickly on your data</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔧 Multiple Tools</h4>
+                    <p>Use SQL, Python, Spark - whatever you prefer</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💰 Cost Effective</h4>
+                    <p>Cheap storage like a lake, performance like a warehouse</p>
+                </div>
+            </div>
+
+            <div class="key-point" style="margin-top: 40px;">
+                <p><strong>Result:</strong> No more copying data! No more keeping systems in sync! Everything lives in one unified location.</p>
+            </div>
+        </div>
+
+        <!-- Slide 5: Lakehouse Structure -->
+        <div class="slide">
+            <h2>🏗️ Inside a Fabric Lakehouse</h2>
+            
+            <div class="diagram">
+                <div class="diagram-box">📁 Files</div>
+                <div style="margin: 20px 0; color: #764ba2;">
+                    <p>Unstructured data: images, videos, PDFs, raw files</p>
+                </div>
+                
+                <div style="margin: 40px 0; font-size: 2em; color: #764ba2;">+</div>
+                
+                <div class="diagram-box">📊 Tables</div>
+                <div style="margin: 20px 0; color: #764ba2;">
+                    <p>Structured data: organized in rows and columns</p>
+                </div>
+                
+                <div style="margin: 40px 0; font-size: 2em; color: #764ba2;">+</div>
+                
+                <div class="diagram-box">🔍 SQL Endpoint</div>
+                <div style="margin: 20px 0; color: #764ba2;">
+                    <p>Query your data using familiar SQL commands</p>
+                </div>
+            </div>
+
+            <div class="key-point">
+                <p><strong>Think of it as:</strong> A smart filing cabinet where files are automatically organized, and you can search through everything with simple questions.</p>
+            </div>
+        </div>
+
+        <!-- Slide 6: The Bronze, Silver, Gold Pattern -->
+        <div class="slide">
+            <h2>🥉🥈🥇 Data Organization: Bronze → Silver → Gold</h2>
+            
+            <p style="text-align: center; margin-bottom: 40px;">
+                Lakehouses organize data in <span class="highlight">layers</span> as it gets cleaner
+            </p>
+
+            <div class="layers">
+                <div class="layer">
+                    <div class="layer-box bronze">🥉 BRONZE</div>
+                    <p><strong>Raw Data</strong></p>
+                    <p>Just as it arrives - unprocessed, unfiltered</p>
+                    <p><em>Example: Raw logs from website</em></p>
+                </div>
+                <div class="layer">
+                    <div class="layer-box silver">🥈 SILVER</div>
+                    <p><strong>Cleaned Data</strong></p>
+                    <p>Filtered, validated, standardized</p>
+                    <p><em>Example: Valid customer records only</em></p>
+                </div>
+                <div class="layer">
+                    <div class="layer-box gold">🥇 GOLD</div>
+                    <p><strong>Business-Ready</strong></p>
+                    <p>Aggregated, ready for reports & dashboards</p>
+                    <p><em>Example: Monthly sales by region</em></p>
+                </div>
+            </div>
+
+            <div class="key-point" style="margin-top: 40px;">
+                <p><strong>Why this matters:</strong> You keep the original data (bronze) safe, while progressively refining it for business use (gold). Best of all worlds!</p>
+            </div>
+        </div>
+
+        <!-- Slide 7: Key Features -->
+        <div class="slide">
+            <h2>⭐ Key Features of Fabric Lakehouse</h2>
+            
+            <h3>1. <span class="emoji">📦</span> Delta Lake Format</h3>
+            <p>Uses an open-source format that's fast, reliable, and supports "time travel" (view data as it was in the past)</p>
+
+            <h3>2. <span class="emoji">🔄</span> ACID Transactions</h3>
+            <p>Your data stays consistent even when multiple people are updating it at the same time</p>
+
+            <h3>3. <span class="emoji">🚀</span> Multiple Access Methods</h3>
+            <ul>
+                <li><span class="checkmark">✓</span> SQL for business analysts</li>
+                <li><span class="checkmark">✓</span> Python/Spark for data engineers</li>
+                <li><span class="checkmark">✓</span> Power BI for visualizations</li>
+            </ul>
+
+            <h3>4. <span class="emoji">💾</span> Automatic Optimization</h3>
+            <p>Fabric automatically optimizes storage and query performance - you don't have to worry about it!</p>
+        </div>
+
+        <!-- Slide 8: Real World Example -->
+        <div class="slide">
+            <h2>🛒 Real World Example: E-commerce Company</h2>
+            
+            <div class="key-point">
+                <h3>Scenario:</h3>
+                <p>An online store wants to analyze customer behavior and sales</p>
+            </div>
+
+            <div class="diagram" style="text-align: left; padding: 30px;">
+                <p><strong>Step 1: Load Data (Bronze Layer)</strong></p>
+                <p style="margin-left: 20px;">→ Website logs, transaction records, customer images</p>
+                
+                <p style="margin-top: 30px;"><strong>Step 2: Clean Data (Silver Layer)</strong></p>
+                <p style="margin-left: 20px;">→ Remove invalid records, standardize formats</p>
+                
+                <p style="margin-top: 30px;"><strong>Step 3: Business Analytics (Gold Layer)</strong></p>
+                <p style="margin-left: 20px;">→ Sales by region, top products, customer segments</p>
+                
+                <p style="margin-top: 30px;"><strong>Step 4: Use The Data</strong></p>
+                <ul style="margin-left: 40px;">
+                    <li>Power BI dashboards for executives</li>
+                    <li>Python models to predict customer churn</li>
+                    <li>SQL queries for daily reports</li>
+                </ul>
+            </div>
+
+            <div class="key-point" style="margin-top: 30px;">
+                <p><strong>All from ONE Lakehouse!</strong> No copying data, no complex integration.</p>
+            </div>
+        </div>
+
+        <!-- Slide 9: Benefits Summary -->
+        <div class="slide">
+            <h2>🎯 Why Choose Lakehouse?</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🎨 Flexibility</h4>
+                    <p>Store any data type - structured or unstructured</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💨 Speed</h4>
+                    <p>Fast queries on large datasets</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💰 Cost-Effective</h4>
+                    <p>Cheaper than traditional warehouses</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔧 Easy to Use</h4>
+                    <p>Familiar SQL + Python tools</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔒 Reliable</h4>
+                    <p>ACID transactions ensure data quality</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📈 Scalable</h4>
+                    <p>Grows with your data needs</p>
+                </div>
+            </div>
+
+            <p style="text-align: center; font-size: 1.4em; margin-top: 50px;">
+                <span class="highlight">One platform. Unlimited possibilities.</span>
+            </p>
+        </div>
+
+        <!-- Slide 10: Summary -->
+        <div class="slide">
+            <h2>📝 Quick Summary</h2>
+            
+            <div class="key-point">
+                <h3>Microsoft Fabric Lakehouse in 3 Sentences:</h3>
+                <p style="font-size: 1.2em; line-height: 2;">
+                    1️⃣ A <strong>Lakehouse</strong> combines the flexibility of a data lake with the performance of a data warehouse.<br><br>
+                    2️⃣ Store <strong>any type of data</strong> (files, tables, images) in one place, and query it with <strong>SQL or Python</strong>.<br><br>
+                    3️⃣ Organize data in <strong>Bronze → Silver → Gold</strong> layers as it gets cleaner and more business-ready.
+                </p>
+            </div>
+
+            <h3 style="margin-top: 50px; text-align: center;">Key Takeaways:</h3>
+            <ul style="font-size: 1.2em;">
+                <li>✅ No more managing separate lake and warehouse systems</li>
+                <li>✅ Cost-effective storage with fast performance</li>
+                <li>✅ Use familiar tools (SQL, Python, Power BI)</li>
+                <li>✅ Built-in reliability with ACID transactions</li>
+                <li>✅ Automatic optimization by Microsoft Fabric</li>
+            </ul>
+
+            <p style="text-align: center; font-size: 1.5em; margin-top: 60px; color: #667eea;">
+                <strong>That's the Lakehouse! 🏠</strong>
+            </p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+            <div class="slide-indicator">
+                <span id="slideNumber">1</span> / <span id="totalSlides">10</span>
+            </div>
+            <button class="nav-button" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            if (n > totalSlides) currentSlide = totalSlides;
+            if (n < 1) currentSlide = 1;
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide - 1].classList.add('active');
+
+            document.getElementById('slideNumber').textContent = currentSlide;
+
+            prevBtn.disabled = currentSlide === 1;
+            nextBtn.disabled = currentSlide === totalSlides;
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>
