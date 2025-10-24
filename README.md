@@ -4,7 +4,7 @@ This project is an **interactive educational web presentation** explaining the c
 
 It’s designed for **students, professionals, and DP-900 learners** who want to visually understand how **Data Lakes, Data Warehouses, and Lakehouses** work together — and how **Microsoft Fabric** unifies them.
 
----
+---Access the Presentation: Live Demo: https://lnkd.in/e7aVWFix
 
 ## 🧠 Overview
 
